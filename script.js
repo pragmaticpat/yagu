@@ -8,7 +8,7 @@ console.log(process.env.GITHUB_TOKEN);
 (async function () {
   console.log(`${process.env.TEST_STRING}`);
 
-  const gatsbytes = process.env.GATSBYTES;
+  const exclusions = process.env.EXCLUDE;
 
   try {
     const {
@@ -48,7 +48,7 @@ console.log(process.env.GITHUB_TOKEN);
     const contributors = [
       ...new Set(
         Array.from(nodes)
-          .filter((pr) => !gatsbytes.includes(pr.author.login))
+          .filter((pr) => !exclusions.includes(pr.author.login))
           .map((pr) => pr.author.login)
       ),
     ];
