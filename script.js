@@ -6,8 +6,6 @@ const { default: axios } = require("axios");
 console.log(process.env.GITHUB_TOKEN);
 
 (async function () {
-  console.log(`${process.env.TEST_STRING}`);
-
   const exclusions = process.env.EXCLUDE;
 
   try {
