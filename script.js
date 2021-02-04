@@ -3,6 +3,8 @@
 require("dotenv").config();
 const { default: axios } = require("axios");
 
+console.log(process.env.GITHUB_TOKEN);
+
 (async function () {
   console.log(`${process.env.TEST_STRING}`);
 
@@ -53,6 +55,6 @@ const { default: axios } = require("axios");
 
     console.log(contributors);
   } catch (err) {
-    console.error(`💩 Well THAT didn't work! : ${err.message}`);
+    console.log(err);
   }
 })();
