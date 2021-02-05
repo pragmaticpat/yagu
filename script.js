@@ -1,7 +1,7 @@
 "use strict";
 
 require("dotenv").config();
-const { default: axios } = require("axios");
+const { getInitialPullRequests, getPreviousPage } = require("./query");
 
 console.log(process.env.GITHUB_TOKEN);
 
@@ -13,46 +13,63 @@ console.log(process.env.GITHUB_TOKEN);
       data: {
         data: {
           repository: {
-            pullRequests: { nodes },
+            pullRequests: {
+              nodes,
+              pageInfo: { hasPreviousPage, startCursor },
+            },
           },
         },
       },
-    } = await axios.post(
-      process.env.GITHUB_API,
-      {
-        query: `
-        query {
-          repository(owner: "gatsbyjs", name: "gatsby") {
-            pullRequests(last: 100, states: MERGED) {
-              nodes {
-                author{
-                  login
-                }
-                title
-                mergedAt
-              }
-            }
-          }
-        }
-        `,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+    } = await getInitialPullRequests();
+
+    // get contributor list from PR's
+    let contributors = Array.from(nodes)
+      .filter((pr) => !exclusions.includes(pr.author.login))
+      .map((pr) => {
+        return {
+          author: pr.author.login,
+          title: pr.title,
+          mergedAt: pr.mergedAt,
+        };
+      });
+
+    // if there's more pages, get the next page
+    let cursor = startCursor;
+    let morePages = hasPreviousPage;
+    while (morePages) {
+      const {
+        data: {
+          data: {
+            repository: {
+              pullRequests: {
+                nodes,
+                pageInfo: { hasPreviousPage, startCursor },
+              },
+            },
+          },
         },
-      }
-    );
+      } = await getPreviousPage(cursor);
 
-    const contributors = [
-      ...new Set(
+      cursor = startCursor;
+      morePages = hasPreviousPage;
+
+      contributors.push(
         Array.from(nodes)
-          .filter((pr) => !exclusions.includes(pr.author.login))
-          .map((pr) => pr.author.login)
-      ),
-    ];
+          .filter((pr) => pr.author && !exclusions.includes(pr.author.login))
+          .map((pr) => {
+            return {
+              author: pr.author.login,
+              title: pr.title,
+              mergedAt: pr.mergedAt,
+            };
+          })
+      );
+    }
 
+    // add results to contributor list again
+    console.log(hasPreviousPage, startCursor);
     console.log(contributors);
   } catch (err) {
-    console.log(err);
+    console.log(err.stack);
   }
 })();
