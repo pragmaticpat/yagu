@@ -7,7 +7,7 @@ Yeah, yeah, I know. Another dumb script project that's overly specific and not a
 1. Clone the repo locally
 2. Go to the root dir
 3. Run `npm install`
-4. Run `npm script.js`
+4. Run `node script.js`
 
 ## Todo
 
