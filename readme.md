@@ -6,11 +6,12 @@ Yeah, yeah, I know. Another dumb script project that's overly specific and not a
 
 1. Copy / rename the sample.env to be .env
 2. Specify the GITHUB_OWNER and GITHUB_REPO you'd like to analyze
-1. Clone the repo locally
-2. Go to the root dir
-3. Run `npm install`
-4. Run `node script.js`
+3. Clone the repo locally
+4. Go to the root dir
+5. Run `npm install`
+6. Run `node script.js`
 
 ## Todo
 
-[ ] ... hmmm
+[ ] Grab contributor images
+[ ] Allow for a list of repos

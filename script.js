@@ -84,10 +84,15 @@ console.log(process.env.GITHUB_TOKEN);
       `🎉 There were a total of ${contributors.length} PR's merged from ${uniqueAuthors.size} open source contributors in 2020 for ${process.env.GITHUB_REPO} ${process.env.GITHUB_OWNER}`
     );
 
+    const contributorsFilePath = `./contributors-${Date.now()}.txt`;
+
+    // get avatars
+    // exclude those without avatars
+
     try {
       contributors.forEach((c) => {
         fs.appendFile(
-          "./contributors.txt",
+          contributorsFilePath,
           `${c.author},${c.title},${c.mergedAt}\r\n`,
           (err, _) => {
             if (err) console.error(`🔥 something went wrong: ${err.message}`);

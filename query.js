@@ -17,6 +17,7 @@ module.exports = {
             nodes {
               author{
                 login
+                avatarUrl
               }
               title
               mergedAt
@@ -44,6 +45,7 @@ module.exports = {
           nodes {
             author{
               login
+              avatarUrl
             }
             title
             mergedAt
