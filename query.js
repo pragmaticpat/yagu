@@ -1,3 +1,4 @@
+require("dotenv").config();
 const { default: axios } = require("axios");
 
 module.exports = {
@@ -7,7 +8,7 @@ module.exports = {
       {
         query: `
       query {
-        repository(owner: "gatsbyjs", name: "gatsby") {
+        repository(owner: "${process.env.GITHUB_OWNER}", name: "${process.env.GITHUB_REPO}") {
           pullRequests(last: 100, states: MERGED) {
             pageInfo{
               hasPreviousPage,
@@ -34,7 +35,7 @@ module.exports = {
   },
   getPreviousPage: function (cursor) {
     let prQuery = `query {
-      repository(owner: "gatsbyjs", name: "gatsby") {
+      repository(owner: "${process.env.GITHUB_OWNER}", name: "${process.env.GITHUB_REPO}") {
         pullRequests(last: 100, states: MERGED, before: "${cursor}") {
           pageInfo{
             hasPreviousPage,
@@ -51,7 +52,6 @@ module.exports = {
       }
     }`;
 
-    console.log(`Cursor: ${cursor}`);
     return axios.post(
       process.env.GITHUB_API,
       {
