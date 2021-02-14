@@ -2,7 +2,20 @@ require("dotenv").config();
 const { default: axios } = require("axios");
 
 module.exports = {
-  getInitialPullRequests: function () {
+  getAvatar: async function (avatarUrl) {
+    try {
+      return axios
+        .get(avatarUrl, { responseType: "arraybuffer" })
+        .then((response) => Buffer.from(response.data, "base64"));
+    } catch (error) {
+      return Promise.reject(
+        `An error occurred getting avatar from ${avatarUrl}: ${error}`
+      );
+    }
+
+    return Promise.resolve(avatarUrl);
+  },
+  getInitialPullRequests: async function () {
     return axios.post(
       process.env.GITHUB_API,
       {
@@ -34,7 +47,7 @@ module.exports = {
       }
     );
   },
-  getPreviousPage: function (cursor) {
+  getPreviousPage: async function (cursor) {
     let prQuery = `query {
       repository(owner: "${process.env.GITHUB_OWNER}", name: "${process.env.GITHUB_REPO}") {
         pullRequests(last: 100, states: MERGED, before: "${cursor}") {

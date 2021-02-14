@@ -1,5 +1,7 @@
 # Project Files
 contributors*.*
+img/*
+collage*.*
 
 # Logs
 logs

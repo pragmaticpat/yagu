@@ -1,9 +1,16 @@
 "use strict";
 
+const createCollage = require("nf-photo-collage");
 require("dotenv").config();
 const fs = require("fs");
-const { getInitialPullRequests, getPreviousPage } = require("./query");
+
+const {
+  getInitialPullRequests,
+  getPreviousPage,
+  getAvatar,
+} = require("./query");
 const cliProgress = require("cli-progress");
+const { create } = require("domain");
 
 console.log(process.env.GITHUB_TOKEN);
 
@@ -31,6 +38,7 @@ console.log(process.env.GITHUB_TOKEN);
       .map((pr) => {
         return {
           author: pr.author.login,
+          avatarUrl: pr.author.avatarUrl,
           title: pr.title,
           mergedAt: pr.mergedAt,
         };
@@ -68,6 +76,7 @@ console.log(process.env.GITHUB_TOKEN);
           .map((pr) => {
             return {
               author: pr.author.login,
+              avatarUrl: pr.author.avatarUrl,
               title: pr.title,
               mergedAt: pr.mergedAt,
             };
@@ -78,22 +87,35 @@ console.log(process.env.GITHUB_TOKEN);
 
     progressBar.stop();
 
-    const uniqueAuthors = new Set(contributors.map((c) => c.author));
+    const uniqueAuthorsWithImages = {};
+
+    contributors.map((c) => {
+      if (uniqueAuthorsWithImages[c.author]) return;
+      uniqueAuthorsWithImages[c.author] = c.avatarUrl;
+    });
 
     console.info(
-      `🎉 There were a total of ${contributors.length} PR's merged from ${uniqueAuthors.size} open source contributors in 2020 for ${process.env.GITHUB_REPO} ${process.env.GITHUB_OWNER}`
+      `🎉 There were a total of ${contributors.length} PR's merged from ${
+        Object.keys(uniqueAuthorsWithImages).length
+      } open source contributors in 2020 for ${process.env.GITHUB_REPO} ${
+        process.env.GITHUB_OWNER
+      }`
     );
 
-    const contributorsFilePath = `./contributors-${Date.now()}.txt`;
-
     // get avatars
-    // exclude those without avatars
+    const uniqueAvatars = new Set(contributors.map((c) => c.avatarUrl));
+    await saveAvatars(Array.from(uniqueAvatars));
+    await createCollageFrom("./img/", "collage.png");
+
+    const contributorsFilePath = `./contributors-${process.env.GITHUB_OWNER}-${
+      process.env.GITHUB_REPO
+    }-${Date.now()}.txt`;
 
     try {
       contributors.forEach((c) => {
         fs.appendFile(
           contributorsFilePath,
-          `${c.author},${c.title},${c.mergedAt}\r\n`,
+          `${c.author},${c.title},${c.mergedAt},${c.avatarUrl}\r\n`,
           (err, _) => {
             if (err) console.error(`🔥 something went wrong: ${err.message}`);
           }
@@ -108,3 +130,60 @@ console.log(process.env.GITHUB_TOKEN);
     console.log(err.stack);
   }
 })();
+
+const createCollageFrom = async function (
+  imageFolderPath,
+  destinationCollageFileName
+) {
+  console.log("creating collage...");
+  await fs.promises
+    .readdir(imageFolderPath)
+    .then((files) => {
+      const images = [];
+      files.forEach((file) => {
+        const imagePath = `${imageFolderPath}/${file}`;
+        images.push(imagePath);
+      });
+      return images;
+    })
+    .then((images) => {
+      const options = {
+        sources: images,
+        width: Math.floor(images.length / 20) || 20,
+        height: 20,
+        imageWidth: 50,
+        imageHeight: 50,
+      };
+      createCollage(options).then((canvas) => {
+        const src = canvas.jpegStream();
+        const dest = fs.createWriteStream(destinationCollageFileName);
+        src.pipe(dest);
+      });
+    })
+    .catch((err) => console.log(`💩 uhhh... ${err}`));
+};
+
+const saveAvatars = async function (listOfAvatarUrls) {
+  console.log(`saving ${listOfAvatarUrls.length} avatars`);
+
+  for (let index = 0; index < listOfAvatarUrls.length; index++) {
+    const avatar = listOfAvatarUrls[index];
+    console.log(`Processing avatar at position ${index}`);
+    const buffer = await getAvatar(avatar);
+    fs.writeFile(`./img/${Date.now()}.png`, buffer, () =>
+      process.stdout.write(".")
+    );
+  }
+
+  // listOfAvatarUrls.forEach(async (a) => {
+  //   try {
+  //     const buffer = await getAvatar(a);
+  //     fs.writeFile(`./img/${Date.now()}.png`, buffer, () =>
+  //       process.stdout.write(".")
+  //     );
+  //     console.log("saving a file...");
+  //   } catch (err) {
+  //     console.log(`Aw 💩 - ${err}`);
+  //   }
+  // });
+};
