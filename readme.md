@@ -13,5 +13,6 @@ Yeah, yeah, I know. Another dumb script project that's overly specific and not a
 
 ## Todo
 
-[ ] Grab contributor images
-[ ] Allow for a list of repos
+- [x] Grab contributor images
+- [ ] Allow for a list of repos
+- [ ] Dynamically compute for collage layout

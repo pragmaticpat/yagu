@@ -147,14 +147,21 @@ const createCollageFrom = async function (
       return images;
     })
     .then((images) => {
+      const dimensions = Math.sqrt(images.length);
+      const imagesWide = Math.round(dimensions * 1.14);
+      const imagesHigh = Math.round(dimensions * 0.87);
       const options = {
         sources: images,
-        width: Math.floor(images.length / 20) || 20,
-        height: 20,
+        width: 43, //imagesWide, //widescreen 16/25
+        height: 24, //imagesHigh, //widescreen 9/25
         imageWidth: 50,
         imageHeight: 50,
       };
       createCollage(options).then((canvas) => {
+        console.log(
+          `creating a collage that is ${imagesHigh} images high by ${imagesWide} images across`
+        );
+
         const src = canvas.jpegStream();
         const dest = fs.createWriteStream(destinationCollageFileName);
         src.pipe(dest);
@@ -165,25 +172,18 @@ const createCollageFrom = async function (
 
 const saveAvatars = async function (listOfAvatarUrls) {
   console.log(`saving ${listOfAvatarUrls.length} avatars`);
+  const progressAvatars = new cliProgress.SingleBar(
+    {},
+    cliProgress.Presets.shades_classic
+  );
 
+  progressAvatars.start(listOfAvatarUrls.length, 0);
   for (let index = 0; index < listOfAvatarUrls.length; index++) {
     const avatar = listOfAvatarUrls[index];
-    console.log(`Processing avatar at position ${index}`);
     const buffer = await getAvatar(avatar);
     fs.writeFile(`./img/${Date.now()}.png`, buffer, () =>
-      process.stdout.write(".")
+      progressAvatars.increment()
     );
   }
-
-  // listOfAvatarUrls.forEach(async (a) => {
-  //   try {
-  //     const buffer = await getAvatar(a);
-  //     fs.writeFile(`./img/${Date.now()}.png`, buffer, () =>
-  //       process.stdout.write(".")
-  //     );
-  //     console.log("saving a file...");
-  //   } catch (err) {
-  //     console.log(`Aw 💩 - ${err}`);
-  //   }
-  // });
+  progressAvatars.stop();
 };
