@@ -16,3 +16,4 @@ Yeah, yeah, I know. Another dumb script project that's overly specific and not a
 - [x] Grab contributor images
 - [ ] Allow for a list of repos
 - [ ] Dynamically compute for collage layout
+- [ ] Grab startgazer count for a particular interval
