@@ -3,14 +3,17 @@
 // const createCollage = require("nf-photo-collage");
 require("dotenv").config();
 const fs = require("fs");
+const dateFns = require("date-fns");
 
 const {
   getInitialPullRequests,
   getPreviousPage,
   getAvatar,
 } = require("./query");
+
 const cliProgress = require("cli-progress");
 const { create } = require("domain");
+const lastEvent = new Date("2021-03-02T00:00:00.000Z");
 
 console.log(process.env.GITHUB_TOKEN);
 
@@ -31,10 +34,19 @@ console.log(process.env.GITHUB_TOKEN);
       },
     } = await getInitialPullRequests();
 
+    let mergedAt; //
+
     // get contributor list from PR's
     let contributors = Array.from(nodes)
       .filter((pr) => !exclusions.includes(pr.author.login))
-      .filter((pr) => pr.mergedAt.indexOf("2021-", 0) >= 0)
+      .filter((pr) => {
+        mergedAt = new Date(pr.mergedAt);
+        if (dateFns.isAfter(mergedAt, lastEvent)) {
+          return true;
+        } else {
+          return false;
+        }
+      })
       .map((pr) => {
         return {
           author: pr.author.login,
@@ -72,7 +84,14 @@ console.log(process.env.GITHUB_TOKEN);
       contributors.push(
         ...Array.from(nodes)
           .filter((pr) => pr.author && !exclusions.includes(pr.author.login))
-          .filter((pr) => pr.mergedAt.indexOf("2021-", 0) >= 0)
+          .filter((pr) => {
+            mergedAt = new Date(pr.mergedAt);
+            if (dateFns.isAfter(mergedAt, lastEvent)) {
+              return true;
+            } else {
+              return false;
+            }
+          })
           .map((pr) => {
             return {
               author: pr.author.login,
