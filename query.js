@@ -13,7 +13,7 @@ module.exports = {
       );
     }
 
-    return Promise.resolve(avatarUrl);
+    // return Promise.resolve(avatarUrl);
   },
   getInitialPullRequests: async function () {
     return axios.post(
