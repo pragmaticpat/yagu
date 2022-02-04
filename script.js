@@ -12,6 +12,7 @@ const {
 } = require("./query");
 
 const cliProgress = require("cli-progress");
+const afterDate = new Date(process.env.AFTER_DATE);
 // const { create } = require("domain");
 
 console.log(process.env.GITHUB_TOKEN);
@@ -40,7 +41,7 @@ console.log(process.env.GITHUB_TOKEN);
       .filter((pr) => !exclusions.includes(pr.author.login))
       .filter((pr) => {
         mergedAt = new Date(pr.mergedAt);
-        if (dateFns.isAfter(mergedAt, process.env.AFTER_DATE)) {
+        if (dateFns.isAfter(mergedAt, afterDate)) {
           return true;
         } else {
           return false;
@@ -85,7 +86,7 @@ console.log(process.env.GITHUB_TOKEN);
           .filter((pr) => pr.author && !exclusions.includes(pr.author.login))
           .filter((pr) => {
             mergedAt = new Date(pr.mergedAt);
-            if (dateFns.isAfter(mergedAt, process.env.AFTER_DATE)) {
+            if (dateFns.isAfter(mergedAt, afterDate)) {
               return true;
             } else {
               return false;
@@ -170,9 +171,8 @@ const createCollageFrom = async function (
       return images;
     })
     .then((images) => {
-      const dimensions = Math.sqrt(images.length);
-      const imagesWide = Math.round(dimensions * 1.14);
-      const imagesHigh = Math.round(dimensions * 0.87);
+      const imagesWide = 1.38 * Math.sqrt(images.length);
+      const imagesHigh = images.length / imagesWide;
       const options = {
         sources: images,
         width: imagesWide, //imagesWide, //widescreen 16/25
@@ -191,7 +191,7 @@ const createCollageFrom = async function (
         src.pipe(dest);
       });
     })
-    .catch((err) => console.log(`💩 uhhh... ${err}`));
+    .catch((err) => console.log(`💩 uhhh... ${(err.message, err.stack)}`));
 };
 
 const saveAvatars = async function (listOfAvatarUrls) {
